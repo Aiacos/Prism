@@ -140,6 +140,7 @@ from PrismUtils import (
     MediaManager,
     MediaProducts,
     PathManager,
+    PlatformUtils,
     PluginManager,
     PrismWidgets,
     Products,
@@ -342,7 +343,7 @@ class PrismCore:
             return os.getenv("PRISM_USER_PREFS")
 
         if platform.system() == "Windows":
-            path = self.getWindowsDocumentsPath()
+            path = self.getDocumentsPath()
         elif platform.system() == "Linux":
             path = os.path.join(os.environ["HOME"])
         elif platform.system() == "Darwin":
@@ -352,16 +353,14 @@ class PrismCore:
         return path
 
     @err_catcher(name=__name__)
+    def getDocumentsPath(self):
+        """Get the user's Documents directory in a cross-platform way."""
+        return PlatformUtils.getDocumentsDir()
+
+    @err_catcher(name=__name__)
     def getWindowsDocumentsPath(self):
-        import ctypes.wintypes
-        CSIDL_PERSONAL = 5       # My Documents
-        SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-
-        buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-        ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
-
-        path = buf.value
-        return path
+        """Deprecated: Use getDocumentsPath() instead."""
+        return self.getDocumentsPath()
 
     @err_catcher(name=__name__)
     def getUserPrefConfigPath(self):
@@ -377,9 +376,10 @@ class PrismCore:
         if platform.system() == "Windows":
             path = os.path.join(os.environ["PROGRAMDATA"], "Prism2")
         elif platform.system() == "Linux":
-            path = "/var/lib/Prism2"
+            # Use XDG-compliant user data directory (no root required)
+            path = os.path.join(PlatformUtils.getDataDir(), "Prism2")
         elif platform.system() == "Darwin":
-            path = os.path.join(os.environ["HOME"], "Documents", "Prism2")
+            path = os.path.join(PlatformUtils.getDataDir(), "Prism2")
 
         return path
 
@@ -2768,63 +2768,18 @@ License: GNU LGPL-3.0-or-later<br>
 
     @err_catcher(name=__name__)
     def createShortcut(self, link, target, args="", ignoreError=False):
-        link = link.replace("/", "\\")
-        target = target.replace("/", "\\")
-
-        logger.debug(
-            "creating shortcut: %s - target: %s - args: %s" % (link, target, args)
+        # Use PlatformUtils for cross-platform shortcut creation
+        return PlatformUtils.createShortcut(
+            link=link,
+            target=target,
+            args=args,
+            ignoreError=ignoreError
         )
-        result = ""
-
-        if platform.system() == "Windows":
-            c = (
-                'Set oWS = WScript.CreateObject("WScript.Shell")\n'
-                'sLinkFile = "%s"\n'
-                "Set oLink = oWS.CreateShortcut(sLinkFile)\n"
-                'oLink.TargetPath = "%s"\n'
-                'oLink.Arguments = "%s"\n'
-                "oLink.Save"
-            ) % (link, target, args)
-
-            tmp = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".vbs")
-            try:
-                tmp.write(c)
-                tmp.close()
-                cmd = "cscript /nologo %s" % tmp.name
-                proc = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-                )
-                result = proc.communicate()
-            except Exception as e:
-                result = str(e)
-            finally:
-                tmp.close()
-                os.remove(tmp.name)
-
-        else:
-            if not ignoreError:
-                logger.warning("not implemented")
-
-        if os.path.exists(link):
-            return True
-        else:
-            if not ignoreError:
-                logger.warning("failed to create shortcut: %s %s" % (link, result))
-            return False
 
     @err_catcher(name=__name__)
     def createSymlink(self, link, target):
-        link = link.replace("/", "\\")
-        target = target.replace("/", "\\")
-
-        if os.path.exists(link):
-            os.remove(link)
-
-        if platform.system() == "Windows":
-            logger.debug("creating hardlink from: %s to %s" % (target, link))
-            subprocess.call(["mklink", "/H", link, target], shell=True)
-        else:
-            logger.warning("not implemented")
+        # Use PlatformUtils for cross-platform symlink/hardlink creation
+        return PlatformUtils.createSymlink(link=link, target=target)
 
     @err_catcher(name=__name__)
     def setTrayStartupWindows(self, enabled, allUsers=False):
@@ -2861,10 +2816,8 @@ License: GNU LGPL-3.0-or-later<br>
 
     @err_catcher(name=__name__)
     def getTempFilepath(self, filename=None, ext=".jpg", filenamebase=None):
-        if platform.system() == "Windows":
-            base = os.environ["temp"]
-        else:
-            base = "/tmp"
+        # Use tempfile module for cross-platform temp directory
+        base = tempfile.gettempdir()
 
         path = os.path.join(base, "Prism")
         if not os.path.exists(path):

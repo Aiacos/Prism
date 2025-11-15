@@ -1,0 +1,30 @@
+# Prism Pipeline - Python Dependencies
+# Linux and Cross-Platform Requirements
+
+# Core Qt Framework (use appropriate version for Python)
+# For Python 3.9-3.10, use PySide2
+PySide2>=5.15.0; python_version<'3.11'
+# For Python 3.11+, use PySide6
+PySide6>=6.2.0; python_version>='3.11'
+
+# Qt abstraction layer (cross-platform compatibility)
+qtpy>=2.0.0
+
+# Media Processing
+imageio>=2.9.0
+imageio-ffmpeg>=0.4.0
+numpy>=1.19.0
+
+# System Utilities
+psutil>=5.8.0
+
+# Linux-Specific (optional but recommended)
+pyxdg>=0.27; sys_platform=='linux'
+
+# OpenImageIO (optional - complex build, use system package if available)
+# oiio>=2.3.0
+
+# Note: On Linux, you may prefer to use system packages:
+# Ubuntu/Debian: sudo apt install python3-pyside2 python3-numpy python3-psutil ffmpeg
+# Fedora/RHEL: sudo dnf install python3-pyside2 python3-numpy python3-psutil ffmpeg
+# Arch Linux: sudo pacman -S python-pyside2 python-numpy python-psutil ffmpeg

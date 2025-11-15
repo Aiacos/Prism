@@ -36,6 +36,8 @@ import os
 import sys
 import platform
 import glob
+import shutil
+import subprocess
 
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -62,9 +64,9 @@ class Prism_Blender_Integration(object):
             else:
                 self.examplePath = self.getBlenderPath() or "C:/Program Files/Blender Foundation/Blender 4.4"
         elif platform.system() == "Linux":
-            self.examplePath = "/usr/local/blender-4.4-linux-glibc219-x86_64/4.4"
+            self.examplePath = self.getBlenderPath() or "/usr/local/blender-4.4-linux-glibc219-x86_64/4.4"
         elif platform.system() == "Darwin":
-            self.examplePath = "/Applications/blender/blender.app/Resources/4.4"
+            self.examplePath = self.getBlenderPath() or "/Applications/blender/blender.app/Resources/4.4"
 
     @err_catcher(name=__name__)
     def getExecutable(self):
@@ -78,25 +80,66 @@ class Prism_Blender_Integration(object):
 
     @err_catcher(name=__name__)
     def getBlenderPath(self):
-        try:
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Classes\\blendfile\\shell\\open\\command",
-                0,
-                _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
-            )
-            blenderPath = (
-                (_winreg.QueryValueEx(key, ""))[0].split(' "%1"')[0].replace('"', "")
-            )
+        if platform.system() == "Windows":
+            try:
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Classes\\blendfile\\shell\\open\\command",
+                    0,
+                    _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
+                )
+                blenderPath = (
+                    (_winreg.QueryValueEx(key, ""))[0].split(' "%1"')[0].replace('"', "")
+                )
 
-            vpath = os.path.join(os.path.dirname(blenderPath), "4.4")
+                vpath = os.path.join(os.path.dirname(blenderPath), "4.4")
 
-            if os.path.exists(vpath):
-                return vpath
-            else:
+                if os.path.exists(vpath):
+                    return vpath
+                else:
+                    return ""
+
+            except:
                 return ""
 
-        except:
+        elif platform.system() == "Linux":
+            # Try which blender first
+            blender_bin = shutil.which("blender")
+            if blender_bin:
+                return os.path.dirname(blender_bin)
+
+            # Search common paths
+            blenderPaths = [
+                "/usr/bin",
+                "/usr/share/blender",
+            ]
+
+            # Search /opt/blender* with glob
+            blenderPaths.extend(sorted(glob.glob("/opt/blender*"), reverse=True))
+
+            # Search snap paths
+            blenderPaths.extend(sorted(glob.glob("/snap/blender/*/"), reverse=True))
+
+            for path in blenderPaths:
+                if os.path.exists(path):
+                    return path
+
+            return ""
+
+        elif platform.system() == "Darwin":
+            # macOS paths
+            macPaths = [
+                "/Applications/Blender.app/Contents/Resources",
+                "/Applications/blender/blender.app/Resources",
+            ]
+
+            for path in macPaths:
+                if os.path.exists(path):
+                    return path
+
+            return ""
+
+        else:
             return ""
 
     @err_catcher(name=__name__)

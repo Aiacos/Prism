@@ -36,6 +36,7 @@ import sys
 import platform
 import shutil
 import glob
+import subprocess
 
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -67,30 +68,74 @@ class Prism_Houdini_Integration(object):
             defaultpath = os.path.join(self.getHoudiniPath(), "bin", "houdini.exe")
             if os.path.exists(defaultpath):
                 execPath = defaultpath
+        elif platform.system() == "Linux":
+            defaultpath = os.path.join(self.getHoudiniPath(), "bin", "houdini")
+            if os.path.exists(defaultpath):
+                execPath = defaultpath
+        elif platform.system() == "Darwin":
+            defaultpath = os.path.join(self.getHoudiniPath(), "Resources", "bin", "houdini")
+            if os.path.exists(defaultpath):
+                execPath = defaultpath
 
         return execPath
 
     @err_catcher(name=__name__)
     def getHoudiniPath(self):
-        try:
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Side Effects Software",
-                0,
-                _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
-            )
-            validVersion = (_winreg.QueryValueEx(key, "ActiveVersion"))[0]
+        if platform.system() == "Windows":
+            try:
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Side Effects Software",
+                    0,
+                    _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
+                )
+                validVersion = (_winreg.QueryValueEx(key, "ActiveVersion"))[0]
 
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Side Effects Software\\Houdini " + validVersion,
-                0,
-                _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
-            )
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Side Effects Software\\Houdini " + validVersion,
+                    0,
+                    _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
+                )
 
-            return (_winreg.QueryValueEx(key, "InstallPath"))[0]
+                return (_winreg.QueryValueEx(key, "InstallPath"))[0]
 
-        except:
+            except:
+                return ""
+
+        elif platform.system() == "Linux":
+            # Check $HFS environment variable first
+            hfs = os.environ.get("HFS")
+            if hfs and os.path.exists(hfs):
+                return hfs
+
+            # Search /opt/hfs* with glob
+            houdiniPaths = sorted(glob.glob("/opt/hfs*"), reverse=True)
+            if houdiniPaths:
+                # Return most recent version
+                return houdiniPaths[0]
+
+            return ""
+
+        elif platform.system() == "Darwin":
+            # macOS paths
+            macPaths = [
+                "/Applications/Houdini/Current/Frameworks/Houdini.framework/Versions/Current",
+                "/Library/Frameworks/Houdini.framework/Versions/Current",
+            ]
+
+            for path in macPaths:
+                if os.path.exists(path):
+                    return path
+
+            # Search for versioned installations
+            versionedPaths = sorted(glob.glob("/Applications/Houdini/Houdini*"), reverse=True)
+            if versionedPaths:
+                return versionedPaths[0]
+
+            return ""
+
+        else:
             return ""
 
     @err_catcher(name=__name__)
