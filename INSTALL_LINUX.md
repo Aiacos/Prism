@@ -1,39 +1,70 @@
-# Prism Pipeline - Linux Installation Guide
+# Prism Pipeline - Guida Installazione Linux
 
-## System Requirements
+**Versione**: Prism 2.0.17 + Linux Compatibility
+**Branch**: `feature/linux-compatibility`
 
-- **Operating System:** Linux (any distribution)
-- **Python:** 3.9, 3.10, or 3.11
-- **Display Server:** X11 or Wayland
-- **Disk Space:** ~500 MB
+> **Guida Rapida?** Vedi [QUICKSTART.md](QUICKSTART.md) per installazione veloce.
 
-## Dependencies
+---
 
-### Quick Install (Recommended)
+## Requisiti di Sistema
 
-Use the automated installation script:
+- **Sistema Operativo**: Linux (qualsiasi distribuzione)
+- **Python**: 3.9, 3.10, 3.11, 3.12, 3.13 o 3.14
+- **Display Server**: X11 o Wayland
+- **Spazio su Disco**: ~500 MB
+
+---
+
+## Installazione Dipendenze
+
+### Metodo Automatico (Consigliato)
+
+Usa lo script di installazione automatico:
 
 ```bash
 cd Prism
 ./install_dependencies.sh
 ```
 
-This interactive script will:
-- Detect your Linux distribution
-- Offer system package manager installation (apt/dnf/pacman)
-- Fallback to pip installation if needed
-- Check what's already installed
+Lo script interattivo:
+- Rileva automaticamente la tua distribuzione Linux
+- Offre installazione tramite package manager di sistema (dnf/apt/pacman)
+- Fallback su pip se necessario
+- Verifica cosa è già installato
 
-**Non-interactive modes:**
+**Modi non-interattivi:**
 ```bash
-./install_dependencies.sh --system  # Use system package manager
-./install_dependencies.sh --pip     # Use pip only
-./install_dependencies.sh --check   # Check installed dependencies
+./install_dependencies.sh --system  # Usa package manager di sistema
+./install_dependencies.sh --pip     # Usa solo pip
+./install_dependencies.sh --check   # Verifica dipendenze installate
+./install_dependencies.sh --dev     # Installa dipendenze sviluppo
 ```
 
-### Manual Installation
+### Installazione Manuale per Distribuzione
 
-#### Ubuntu/Debian
+<details>
+<summary><b>Fedora / RHEL / CentOS</b></summary>
+
+```bash
+sudo dnf install -y \
+    python3 \
+    python3-pip \
+    python3-pyside6 \
+    python3-numpy \
+    python3-psutil \
+    python3-imageio \
+    ffmpeg \
+    mesa-libGL \
+    libxcb \
+    xdg-utils
+```
+
+**Nota**: Per Python < 3.11, usa `python3-pyside2` invece di `python3-pyside6`
+</details>
+
+<details>
+<summary><b>Ubuntu / Debian</b></summary>
 
 ```bash
 sudo apt update
@@ -49,63 +80,64 @@ sudo apt install -y \
     xdg-utils
 ```
 
-#### Fedora/RHEL/CentOS
+**Nota**: Per Python >= 3.11, prova `python3-pyside6` se disponibile
+</details>
 
-```bash
-sudo dnf install -y \
-    python3 \
-    python3-pip \
-    python3-pyside2 \
-    python3-numpy \
-    python3-psutil \
-    ffmpeg \
-    mesa-libGL \
-    libxcb \
-    xdg-utils
-```
-
-#### Arch Linux
+<details>
+<summary><b>Arch Linux / Manjaro</b></summary>
 
 ```bash
 sudo pacman -S \
     python \
     python-pip \
-    python-pyside2 \
+    python-pyside6 \
     python-numpy \
     python-psutil \
+    python-imageio \
     ffmpeg \
     mesa \
     xdg-utils
 ```
+</details>
 
-### Python Dependencies via pip
+<details>
+<summary><b>openSUSE</b></summary>
 
-If you prefer using pip instead of system packages:
+```bash
+sudo zypper install -y \
+    python3 \
+    python3-pip \
+    python3-pyside6 \
+    python3-numpy \
+    python3-psutil \
+    ffmpeg \
+    Mesa-libGL1 \
+    xdg-utils
+```
+</details>
+
+### Installazione via pip
+
+Se preferisci usare pip invece dei pacchetti di sistema:
 
 ```bash
 pip3 install --user -r requirements.txt
 ```
 
-**Note:** On some distributions (Fedora 43+, Python 3.11+), you may need:
+**Per Python 3.11+ o Python 3.14+** (Fedora 43+), potresti aver bisogno di:
 ```bash
 pip3 install --user --break-system-packages -r requirements.txt
 ```
 
-### Development Dependencies
+⚠️ **Python 3.14**: Si consiglia **SEMPRE** di usare i pacchetti di sistema invece di pip.
 
-For developers and contributors:
+---
 
-```bash
-pip3 install --user -r requirements-dev.txt
-```
+## Metodi di Installazione
 
-This includes testing frameworks, linting tools, and documentation generators.
+### Metodo 1: Installazione Utente (Consigliato - Senza Root)
 
-## Installation Methods
-
-### Method 1: User Installation (Recommended - No Root Required)
-
-1. **Download or Clone Prism:**
+1. **Scarica o clona Prism:**
    ```bash
    cd ~
    git clone https://github.com/PrismPipeline/Prism.git
@@ -113,203 +145,220 @@ This includes testing frameworks, linting tools, and documentation generators.
    git checkout feature/linux-compatibility
    ```
 
-2. **Download Dependencies** (optional):
-   Download the [Prism dependencies package](https://prism-pipeline.com/downloads/) and extract:
+2. **Installa dipendenze:**
    ```bash
-   # Extract dependencies
-   unzip Prism_dependencies_v2.0.5.zip
-   # Copy CrossPlatform libraries
-   cp -r PythonLibs/CrossPlatform Prism/PythonLibs/
+   ./install_dependencies.sh --system
    ```
 
-3. **Run Setup:**
+3. **Esegui l'installazione:**
    ```bash
    cd Prism
    ./setup.sh
    ```
 
-4. **Launch Prism:**
+4. **Avvia Prism:**
    ```bash
    ./prism.sh
    ```
 
-### Method 2: System-Wide Installation (Requires Root)
+### Metodo 2: Installazione di Sistema (Richiede Root)
 
-1. **Clone to /opt:**
+1. **Clona in /opt:**
    ```bash
    sudo git clone https://github.com/PrismPipeline/Prism.git /opt/Prism
    cd /opt/Prism
    sudo git checkout feature/linux-compatibility
    ```
 
-2. **Download Dependencies:**
+2. **Installa dipendenze:**
    ```bash
-   # Download and extract dependencies
-   sudo unzip Prism_dependencies_v2.0.5.zip -d /opt/Prism/Prism/PythonLibs/
+   sudo ./install_dependencies.sh --system
    ```
 
-3. **Run Setup:**
+3. **Esegui setup:**
    ```bash
    cd /opt/Prism/Prism
    sudo ./setup.sh --system
    ```
 
-4. **Create Symlink (optional):**
+4. **Crea symlink (opzionale):**
    ```bash
    sudo ln -s /opt/Prism/Prism/prism.sh /usr/local/bin/prism
    ```
 
-5. **Launch Prism:**
+5. **Avvia Prism:**
    ```bash
    prism
-   # Or from menu: Applications > Graphics > Prism Project Browser
+   # Oppure da menu: Applicazioni > Grafica > Prism Project Browser
    ```
 
-## DCC Integration
+---
+
+## Integrazione con DCC
 
 ### Blender
 
-Prism automatically detects Blender in:
-- `/usr/bin/blender` (system package)
+Prism rileva automaticamente Blender in:
+- `/usr/bin/blender` (pacchetto di sistema)
 - `/usr/share/blender`
-- `/opt/blender*` (manual installation)
+- `/opt/blender*` (installazione manuale)
 - `/snap/blender/*/` (snap package)
 
-**Manual Configuration:**
-If Blender is in a custom location, specify the path in Prism Settings > DCC Apps > Blender.
+**Configurazione Manuale:**
+Se Blender è in una posizione personalizzata: Prism Settings > DCC Apps > Blender
 
 ### Houdini
 
-Prism detects Houdini via:
-- `$HFS` environment variable
-- `/opt/hfs*` (standard Side Effects installation)
+Prism rileva Houdini tramite:
+- Variabile d'ambiente `$HFS`
+- `/opt/hfs*` (installazione standard Side Effects)
 
 **Setup Houdini:**
-1. Source Houdini environment:
+1. Source dell'ambiente Houdini:
    ```bash
    cd /opt/hfsXX.X.XXX
    source houdini_setup
    ```
 
-2. Launch Prism from within Houdini environment, or set `$HFS` permanently in your shell profile.
+2. Avvia Prism dall'ambiente Houdini, oppure imposta `$HFS` permanentemente nel tuo profilo shell.
 
 ### Nuke
 
-Prism looks for Nuke in:
+Prism cerca Nuke in:
 - `/usr/local/Nuke*`
 - `/opt/Nuke*`
 
 ### Maya
 
-Maya on Linux is typically in:
+Maya su Linux si trova tipicamente in:
 - `/usr/autodesk/maya*`
-- Set `$MAYA_LOCATION` if in custom location
+- Imposta `$MAYA_LOCATION` se in posizione personalizzata
 
-## Configuration
+---
 
-### XDG Directories
+## Configurazione
 
-Prism respects XDG Base Directory specification:
+### Directory XDG
 
-- **Config:** `~/.config/Prism2` (or `$XDG_CONFIG_HOME/Prism2`)
-- **Data:** `~/.local/share/Prism2` (or `$XDG_DATA_HOME/Prism2`)
-- **Cache:** `~/.cache/Prism2` (or `$XDG_CACHE_HOME/Prism2`)
+Prism rispetta la specifica XDG Base Directory:
 
-### Application Menu Integration
+- **Config**: `~/.config/Prism2` (o `$XDG_CONFIG_HOME/Prism2`)
+- **Data**: `~/.local/share/Prism2` (o `$XDG_DATA_HOME/Prism2`)
+- **Cache**: `~/.cache/Prism2` (o `$XDG_CACHE_HOME/Prism2`)
 
-Setup creates .desktop files in:
-- **User:** `~/.local/share/applications/`
-- **System:** `/usr/share/applications/`
+### Integrazione Menu Applicazioni
 
-Applications appear in: **Applications > Graphics**
+Il setup crea file .desktop in:
+- **Utente**: `~/.local/share/applications/`
+- **Sistema**: `/usr/share/applications/`
+
+Le applicazioni appaiono in: **Applicazioni > Grafica**
 
 ### Autostart (System Tray)
 
-To enable Prism Tray on login:
-1. Open Prism Settings
-2. Go to "User" tab
-3. Check "Launch on system startup"
+Per abilitare Prism Tray all'avvio:
+1. Apri Prism Settings
+2. Vai al tab "User"
+3. Spunta "Launch on system startup"
 
-This creates: `~/.config/autostart/PrismTray.desktop`
+Questo crea: `~/.config/autostart/PrismTray.desktop`
 
-## Troubleshooting
+---
 
-### Prism doesn't start
+## Risoluzione Problemi
 
-1. **Check Python version:**
+### Prism non si avvia
+
+1. **Verifica versione Python:**
    ```bash
-   python3 --version  # Should be 3.9, 3.10, or 3.11
+   python3 --version  # Deve essere 3.9+
    ```
 
-2. **Check dependencies:**
+2. **Verifica dipendenze:**
+   ```bash
+   ./install_dependencies.sh --check
+   ```
+
+   Oppure manualmente:
    ```bash
    python3 -c "from PySide2 import QtCore; print('PySide2 OK')"
-   python3 -c "import imageio, numpy, psutil; print('All OK')"
+   # oppure
+   python3 -c "from PySide6 import QtCore; print('PySide6 OK')"
    ```
 
-3. **Check logs:**
+3. **Controlla i log:**
    ```bash
-   python3 ~/Prism/Prism/Scripts/PrismCore.py 2>&1 | tee prism.log
+   cd Prism
+   python3 Scripts/PrismCore.py 2>&1 | tee prism.log
    ```
 
-### DCC not detected
+### DCC non rilevata
 
-1. **Verify installation:**
+1. **Verifica installazione:**
    ```bash
-   which blender  # Should show path
-   echo $HFS      # For Houdini
+   which blender  # Dovrebbe mostrare il percorso
+   echo $HFS      # Per Houdini
    ```
 
-2. **Manual configuration:**
-   - Open Prism Settings > DCC Apps
-   - Click "Add" and browse to DCC executable
+2. **Configurazione manuale:**
+   - Apri Prism Settings > DCC Apps
+   - Clicca "Add" e naviga verso l'eseguibile DCC
 
-### Permission errors
+### Errori di permessi
 
-If you see permission errors in `~/.local/share/Prism2`:
+Se vedi errori di permessi in `~/.local/share/Prism2`:
 
 ```bash
-# Fix ownership
+# Correggi ownership
 chown -R $USER:$USER ~/.local/share/Prism2
 chown -R $USER:$USER ~/.config/Prism2
 
-# Fix permissions
+# Correggi permessi
 chmod -R u+rwX ~/.local/share/Prism2
 chmod -R u+rwX ~/.config/Prism2
 ```
 
-### Qt/PySide errors
+### Errori Qt/PySide
 
-If you see Qt-related errors:
+Se vedi errori relativi a Qt:
 
 ```bash
-# Option 1: Use system Qt
+# Usa pacchetti di sistema (consigliato)
+sudo dnf install python3-pyside6  # Fedora
 sudo apt install python3-pyside2  # Ubuntu/Debian
-sudo dnf install python3-pyside2  # Fedora
-
-# Option 2: Use pip Qt (may conflict with system Qt)
-pip3 install --user PySide2
 ```
 
-### Wayland issues
+### Problemi con Wayland
 
-If running on Wayland and experiencing display issues:
+Se usi Wayland e riscontri problemi di visualizzazione:
 
 ```bash
-# Force X11 backend
+# Forza backend X11
 QT_QPA_PLATFORM=xcb ./prism.sh
 ```
 
-## Uninstallation
+### Python 3.14 - Errore installazione PySide6
 
-### User Installation
+**Usa SEMPRE i pacchetti di sistema per Python 3.14+:**
+
+```bash
+sudo ./install_dependencies.sh --system
+```
+
+Questo installerà pacchetti pre-compilati e testati per la tua distribuzione.
+
+---
+
+## Disinstallazione
+
+### Installazione Utente
 
 ```bash
 cd ~/Prism/Prism
 ./uninstall.sh
 ```
 
-Then remove directory:
+Poi rimuovi le directory:
 ```bash
 rm -rf ~/Prism
 rm -rf ~/.config/Prism2
@@ -317,35 +366,54 @@ rm -rf ~/.local/share/Prism2
 rm -rf ~/.cache/Prism2
 ```
 
-### System Installation
+### Installazione di Sistema
 
 ```bash
 cd /opt/Prism/Prism
 sudo ./uninstall.sh
 ```
 
-Then remove directory:
+Poi rimuovi la directory:
 ```bash
 sudo rm -rf /opt/Prism
 ```
 
-## Getting Help
+---
 
-- **Forum:** https://prism-pipeline.com/forum/
-- **Documentation:** https://prism-pipeline.com/docs/
-- **GitHub Issues:** https://github.com/PrismPipeline/Prism/issues
-- **Discord:** (if available)
+## Aiuto e Supporto
 
-## Known Issues
+- **Forum**: https://prism-pipeline.com/forum/
+- **Documentazione**: https://prism-pipeline.com/docs/
+- **GitHub Issues**: https://github.com/PrismPipeline/Prism/issues
+- **Quick Start**: Vedi [QUICKSTART.md](QUICKSTART.md)
+- **Storia Sviluppo**: Vedi [LINUX_DEVELOPMENT_HISTORY.md](LINUX_DEVELOPMENT_HISTORY.md)
 
-1. **System Tray:** Some desktop environments (GNOME) don't support system tray icons by default. Install "AppIndicator" extension.
+---
 
-2. **Snap Blender:** Snap-installed Blender may have sandboxing restrictions. Prefer system package or manual installation.
+## Problemi Noti
 
-3. **Wayland:** Full Wayland support is experimental. Use X11 session if issues occur.
+1. **System Tray**: Alcuni ambienti desktop (GNOME) non supportano icone system tray di default. Installa l'estensione "AppIndicator".
 
-## Contributing
+2. **Snap Blender**: Blender installato via Snap può avere restrizioni di sandboxing. Preferisci pacchetto di sistema o installazione manuale.
 
-Linux support is actively being developed. Contributions welcome!
+3. **Wayland**: Il supporto completo a Wayland è sperimentale. Usa sessione X11 se riscontri problemi.
 
-See `LINUX_COMPATIBILITY_ANALYSIS.md` for development roadmap.
+---
+
+## Compatibilità Python
+
+| Versione Python | Framework Qt | Metodo Consigliato |
+|----------------|--------------|-------------------|
+| 3.9 - 3.10 | PySide2 | Pacchetti sistema |
+| 3.11 - 3.13 | PySide6 | Pacchetti sistema |
+| 3.14+ | PySide6 6.8+ | **Solo pacchetti sistema** |
+
+---
+
+**Testato su**:
+- Fedora 43 (Python 3.14)
+- Ubuntu 22.04 (Python 3.10)
+- Arch Linux (Python 3.11)
+
+**Branch**: `feature/linux-compatibility`
+**Versione**: Prism 2.0.17 + Linux Support
