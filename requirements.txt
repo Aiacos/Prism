@@ -1,30 +1,62 @@
 # Prism Pipeline - Python Dependencies
-# Linux and Cross-Platform Requirements
+# ==========================================
+# Core dependencies required to run Prism Pipeline
 
-# Core Qt Framework (use appropriate version for Python)
-# For Python 3.9-3.10, use PySide2
-PySide2>=5.15.0; python_version<'3.11'
-# For Python 3.11+, use PySide6
-PySide6>=6.2.0; python_version>='3.11'
+# Qt Framework - GUI components (REQUIRED)
+# Use PySide2 for Python 3.9-3.10, PySide6 for Python 3.11+
+PySide2>=5.15.0,<5.16; python_version<'3.11'
+PySide6>=6.2.0,<6.8; python_version>='3.11'
 
-# Qt abstraction layer (cross-platform compatibility)
-qtpy>=2.0.0
+# Qt abstraction layer - enables PySide2/PySide6/PyQt5 compatibility (REQUIRED)
+qtpy>=2.0.0,<3.0
 
-# Media Processing
-imageio>=2.9.0
+# Media Processing (REQUIRED for rendering, playblast, thumbnails)
+imageio>=2.9.0,<3.0
 imageio-ffmpeg>=0.4.0
-numpy>=1.19.0
+numpy>=1.19.0,<2.0
 
-# System Utilities
-psutil>=5.8.0
+# System Utilities (REQUIRED for process management, resource monitoring)
+psutil>=5.8.0,<6.0
 
-# Linux-Specific (optional but recommended)
+# XDG Base Directory support for Linux (OPTIONAL but recommended on Linux)
 pyxdg>=0.27; sys_platform=='linux'
 
-# OpenImageIO (optional - complex build, use system package if available)
-# oiio>=2.3.0
+# OpenImageIO - Advanced image I/O (OPTIONAL - use system package if available)
+# Uncomment if you need OpenImageIO and cannot install via system package manager
+# OpenImageIO>=2.3.0
 
-# Note: On Linux, you may prefer to use system packages:
-# Ubuntu/Debian: sudo apt install python3-pyside2 python3-numpy python3-psutil ffmpeg
-# Fedora/RHEL: sudo dnf install python3-pyside2 python3-numpy python3-psutil ffmpeg
-# Arch Linux: sudo pacman -S python-pyside2 python-numpy python-psutil ffmpeg
+# Note: Some dependencies may require system libraries
+# Ensure these are installed on your system:
+# - FFmpeg (for video processing)
+# - OpenGL libraries (for 3D rendering)
+# - X11/Wayland libraries (for GUI on Linux)
+
+# ===========================================================================
+# LINUX INSTALLATION ALTERNATIVES
+# ===========================================================================
+# On Linux, you may prefer to use system packages instead of pip:
+#
+# Ubuntu/Debian:
+#   sudo apt install python3-pyside2 python3-numpy python3-psutil \
+#                    python3-imageio ffmpeg libgl1-mesa-glx
+#
+# Fedora/RHEL/CentOS:
+#   sudo dnf install python3-pyside2 python3-numpy python3-psutil \
+#                    python3-imageio ffmpeg mesa-libGL
+#
+# Arch Linux:
+#   sudo pacman -S python-pyside2 python-numpy python-psutil \
+#                  python-imageio ffmpeg mesa
+#
+# For Python 3.11+, replace python3-pyside2 with python3-pyside6
+#
+# ===========================================================================
+# WINDOWS INSTALLATION
+# ===========================================================================
+# On Windows, use pip:
+#   pip install -r requirements.txt
+#
+# Note: Windows users should use the bundled Python from Prism dependencies
+#       package which includes all necessary libraries pre-configured.
+#
+# ===========================================================================

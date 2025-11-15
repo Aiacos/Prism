@@ -1,0 +1,21 @@
+# Prism Pipeline - Test Dependencies
+# ==========================================
+# Minimal dependencies for running tests only
+# (lighter than full dev environment)
+
+# Include base requirements
+-r requirements.txt
+
+# Testing essentials
+pytest>=7.0.0,<8.0
+pytest-cov>=4.0.0,<5.0
+pytest-xdist>=3.0.0,<4.0  # Parallel test execution
+
+# Mocking and fixtures
+pytest-mock>=3.10.0,<4.0
+
+# Coverage reporting
+coverage[toml]>=7.0.0,<8.0
+
+# Note: Install test dependencies with:
+#   pip install -r requirements-test.txt

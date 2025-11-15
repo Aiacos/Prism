@@ -9,7 +9,31 @@
 
 ## Dependencies
 
-### Ubuntu/Debian
+### Quick Install (Recommended)
+
+Use the automated installation script:
+
+```bash
+cd Prism
+./install_dependencies.sh
+```
+
+This interactive script will:
+- Detect your Linux distribution
+- Offer system package manager installation (apt/dnf/pacman)
+- Fallback to pip installation if needed
+- Check what's already installed
+
+**Non-interactive modes:**
+```bash
+./install_dependencies.sh --system  # Use system package manager
+./install_dependencies.sh --pip     # Use pip only
+./install_dependencies.sh --check   # Check installed dependencies
+```
+
+### Manual Installation
+
+#### Ubuntu/Debian
 
 ```bash
 sudo apt update
@@ -17,44 +41,65 @@ sudo apt install -y \
     python3 \
     python3-pip \
     python3-pyside2 \
+    python3-numpy \
+    python3-psutil \
     ffmpeg \
     libgl1-mesa-glx \
     libxcb-xinerama0 \
     xdg-utils
 ```
 
-### Fedora/RHEL/CentOS
+#### Fedora/RHEL/CentOS
 
 ```bash
 sudo dnf install -y \
     python3 \
     python3-pip \
     python3-pyside2 \
+    python3-numpy \
+    python3-psutil \
     ffmpeg \
     mesa-libGL \
     libxcb \
     xdg-utils
 ```
 
-### Arch Linux
+#### Arch Linux
 
 ```bash
 sudo pacman -S \
     python \
     python-pip \
     python-pyside2 \
+    python-numpy \
+    python-psutil \
     ffmpeg \
     mesa \
     xdg-utils
 ```
 
-### Python Dependencies (Alternative to System Packages)
+### Python Dependencies via pip
 
 If you prefer using pip instead of system packages:
 
 ```bash
-pip3 install -r requirements.txt
+pip3 install --user -r requirements.txt
 ```
+
+**Note:** On some distributions (Fedora 43+, Python 3.11+), you may need:
+```bash
+pip3 install --user --break-system-packages -r requirements.txt
+```
+
+### Development Dependencies
+
+For developers and contributors:
+
+```bash
+pip3 install --user -r requirements-dev.txt
+```
+
+This includes testing frameworks, linting tools, and documentation generators.
 
 ## Installation Methods
 
