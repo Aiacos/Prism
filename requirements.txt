@@ -5,7 +5,9 @@
 # Qt Framework - GUI components (REQUIRED)
 # Use PySide2 for Python 3.9-3.10, PySide6 for Python 3.11+
 PySide2>=5.15.0,<5.16; python_version<'3.11'
-PySide6>=6.2.0,<6.8; python_version>='3.11'
+PySide6>=6.2.0; python_version>='3.11' and python_version<'3.14'
+# For Python 3.14+, try latest PySide6 or use system packages
+PySide6>=6.8; python_version>='3.14'
 
 # Qt abstraction layer - enables PySide2/PySide6/PyQt5 compatibility (REQUIRED)
 qtpy>=2.0.0,<3.0

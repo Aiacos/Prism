@@ -74,12 +74,22 @@ install_system_packages() {
 
         fedora)
             print_msg "$YELLOW" "Installing for Fedora..."
+
+            # Check Python version for PySide choice
+            local py_minor=$($PYTHON_CMD -c "import sys; print(sys.version_info.minor)")
+            local pyside_pkg="python3-pyside2"
+            if [ "$py_minor" -ge 11 ]; then
+                pyside_pkg="python3-pyside6"
+                print_msg "$YELLOW" "Python 3.11+ detected, using PySide6"
+            fi
+
             sudo dnf install -y \
                 python3 \
                 python3-pip \
-                python3-pyside2 \
+                $pyside_pkg \
                 python3-numpy \
                 python3-psutil \
+                python3-imageio \
                 ffmpeg \
                 mesa-libGL \
                 libxcb \
@@ -145,17 +155,37 @@ install_pip_packages() {
         return 1
     fi
 
+    # Check Python version
+    local py_major=$($PYTHON_CMD -c "import sys; print(sys.version_info.major)")
+    local py_minor=$($PYTHON_CMD -c "import sys; print(sys.version_info.minor)")
+
+    # Warn about Python 3.14+
+    if [ "$py_minor" -ge 14 ]; then
+        print_msg "$YELLOW" "⚠ WARNING: Python 3.14+ detected!"
+        print_msg "$YELLOW" "  PySide6 may not have pip packages for Python 3.14 yet."
+        print_msg "$YELLOW" "  Recommended: Use system packages instead (option 1)"
+        read -p "Continue with pip anyway? [y/N] " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return 1
+        fi
+    fi
+
     # Check if we should use --break-system-packages (Fedora 43+, etc.)
     local pip_args=""
-    if python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" 2>/dev/null; then
+    if [ "$py_minor" -ge 11 ]; then
         print_msg "$YELLOW" "Python 3.11+ detected, using --break-system-packages flag"
         pip_args="--break-system-packages"
     fi
 
     print_msg "$YELLOW" "Installing Python dependencies..."
-    pip3 install $pip_args --user -r "$SCRIPT_DIR/requirements.txt"
-
-    print_msg "$GREEN" "✓ pip packages installed successfully"
+    if pip3 install $pip_args --user -r "$SCRIPT_DIR/requirements.txt"; then
+        print_msg "$GREEN" "✓ pip packages installed successfully"
+    else
+        print_msg "$RED" "✗ pip installation failed"
+        print_msg "$YELLOW" "Try system packages instead: ./install_dependencies.sh --system"
+        return 1
+    fi
 }
 
 # Install development dependencies
