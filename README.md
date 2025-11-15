@@ -21,7 +21,7 @@ For a getting started guide about how to use Prism see the [Documentation](https
 
 ## Installing
 
-**At this time Prism 2 is supported on Windows only.**
+### Windows
 
 Download the installer from the [website](https://prism-pipeline.com/downloads/)
 (This version allows you to automatically update Prism and install new plugins)
@@ -35,6 +35,33 @@ or to install Prism manually:
 "Plugins", "Python39", "PythonLibs", "Scripts", ...
 
 * Execute the setup.bat file to launch Prism.
+
+### Linux (Beta - `feature/linux-compatibility` branch)
+
+**Quick Start:**
+
+```bash
+git clone https://github.com/PrismPipeline/Prism.git
+cd Prism
+git checkout feature/linux-compatibility
+sudo ./install_dependencies.sh --system
+cd Prism
+./prism.sh
+```
+
+**Complete Guides:**
+- 🚀 [Quick Start Guide](QUICKSTART.md) - Fast installation
+- 📖 [Complete Linux Installation Guide](INSTALL_LINUX.md) - Detailed instructions
+- 🔧 [Developer Documentation](CLAUDE.md) - For contributors
+- 📚 [Development History](LINUX_DEVELOPMENT_HISTORY.md) - Technical details
+
+**Supported Distributions:**
+- Fedora / RHEL / CentOS
+- Ubuntu / Debian / Pop!_OS
+- Arch Linux / Manjaro
+- openSUSE
+
+**Python Support:** 3.9, 3.10, 3.11, 3.12, 3.13, 3.14
 
 ## License
 
