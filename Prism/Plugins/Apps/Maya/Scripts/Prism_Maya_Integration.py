@@ -35,6 +35,7 @@ import os
 import sys
 import platform
 import shutil
+import glob
 
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -85,43 +86,63 @@ class Prism_Maya_Integration(object):
 
     @err_catcher(name=__name__)
     def getMayaPath(self):
-        try:
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Autodesk\\Maya",
-                0,
-                _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
-            )
-
-            mayaVersions = []
+        if platform.system() == "Windows":
             try:
-                i = 0
-                while True:
-                    mayaVers = _winreg.EnumKey(key, i)
-                    if sys.version[0] == "2":
-                        mayaVers = unicode(mayaVers)
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Autodesk\\Maya",
+                    0,
+                    _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
+                )
 
-                    if mayaVers.isnumeric():
-                        mayaVersions.append(mayaVers)
-                    i += 1
-            except WindowsError:
-                pass
+                mayaVersions = []
+                try:
+                    i = 0
+                    while True:
+                        mayaVers = _winreg.EnumKey(key, i)
+                        if sys.version[0] == "2":
+                            mayaVers = unicode(mayaVers)
 
-            validVersion = mayaVersions[-1]
+                        if mayaVers.isnumeric():
+                            mayaVersions.append(mayaVers)
+                        i += 1
+                except WindowsError:
+                    pass
 
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Autodesk\\Maya\\%s\\Setup\\InstallPath" % validVersion,
-                0,
-                _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
-            )
+                validVersion = mayaVersions[-1]
 
-            installDir = (_winreg.QueryValueEx(key, "MAYA_INSTALL_LOCATION"))[0]
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Autodesk\\Maya\\%s\\Setup\\InstallPath" % validVersion,
+                    0,
+                    _winreg.KEY_READ | _winreg.KEY_WOW64_64KEY,
+                )
 
-            return installDir
+                installDir = (_winreg.QueryValueEx(key, "MAYA_INSTALL_LOCATION"))[0]
 
-        except:
-            return ""
+                return installDir
+
+            except:
+                return ""
+
+        elif platform.system() == "Linux":
+            mayaPaths = ["/usr/autodesk/maya2024", "/usr/autodesk/maya2023", "/usr/autodesk/maya2022"]
+            mayaPaths.extend(glob.glob("/usr/autodesk/maya*"))
+            mayaPaths.extend(glob.glob("/opt/autodesk/maya*"))
+            for path in mayaPaths:
+                if os.path.exists(path):
+                    return path
+            return os.environ.get("MAYA_LOCATION", "")
+
+        elif platform.system() == "Darwin":
+            mayaPaths = ["/Applications/Autodesk/maya2024", "/Applications/Autodesk/maya2023", "/Applications/Autodesk/maya2022"]
+            mayaPaths.extend(glob.glob("/Applications/Autodesk/maya*"))
+            for path in mayaPaths:
+                if os.path.exists(path):
+                    return path
+            return os.environ.get("MAYA_LOCATION", "")
+
+        return ""
 
     def addIntegration(self, installPath):
         try:

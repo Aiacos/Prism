@@ -124,6 +124,9 @@ class Prism_Standalone_Functions(object):
             )
             return
 
+        if platform.system() == "Linux":
+            return self.createLinuxStartMenu(origin, allUsers=allUsers)
+
         if platform.system() == "Windows":
             if allUsers:
                 startMenuPath = os.path.join(
@@ -190,6 +193,146 @@ class Prism_Standalone_Functions(object):
 
             if os.path.exists(os.path.dirname(desktopIcon)):
                 self.core.createShortcut(desktopIcon, target, args=args2)
+
+        return True
+
+    @err_catcher(name=__name__)
+    def createLinuxStartMenu(self, origin, allUsers=False):
+        """Create Linux .desktop files for application menu and autostart"""
+        if os.environ.get("prism_skip_root_install"):
+            logger.warning(
+                "skipped creating Prism menu entries because of missing permissions."
+            )
+            return
+
+        if platform.system() != "Linux":
+            return False
+
+        import subprocess
+
+        # Determine paths based on allUsers flag
+        if allUsers:
+            applicationsDir = "/usr/share/applications"
+            autostartDir = "/etc/xdg/autostart"
+        else:
+            applicationsDir = os.path.expanduser("~/.local/share/applications")
+            autostartDir = os.path.expanduser("~/.config/autostart")
+
+        # Create directories if they don't exist
+        try:
+            os.makedirs(applicationsDir, exist_ok=True)
+            os.makedirs(autostartDir, exist_ok=True)
+        except Exception as e:
+            logger.warning("failed to create directories: %s" % e)
+            return False
+
+        # Get paths
+        pythonPath = self.core.getPythonPath()
+        prismRoot = self.core.prismRoot
+        iconPath = os.path.join(prismRoot, "Scripts", "UserInterfacesPrism", "p_tray.png")
+
+        # Remove old entries first
+        oldEntries = [
+            os.path.join(applicationsDir, "PrismTray.desktop"),
+            os.path.join(applicationsDir, "PrismProjectBrowser.desktop"),
+            os.path.join(applicationsDir, "PrismSettings.desktop"),
+            os.path.join(autostartDir, "PrismTray.desktop"),
+        ]
+        for entry in oldEntries:
+            if os.path.exists(entry):
+                try:
+                    os.remove(entry)
+                    logger.debug("removed %s" % entry)
+                except Exception as e:
+                    logger.debug("couldn't remove %s: %s" % (entry, e))
+
+        # Create Prism Tray desktop file
+        trayDesktop = os.path.join(applicationsDir, "PrismTray.desktop")
+        trayContent = """[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Prism Tray
+Comment=Prism Pipeline Tray Application
+Exec="{pythonPath}" "{prismRoot}/Scripts/PrismTray.py"
+Icon={iconPath}
+Terminal=false
+Categories=Graphics;
+StartupNotify=false
+""".format(pythonPath=pythonPath, prismRoot=prismRoot, iconPath=iconPath)
+
+        try:
+            with open(trayDesktop, 'w') as f:
+                f.write(trayContent)
+            os.chmod(trayDesktop, 0o755)
+            logger.debug("created %s" % trayDesktop)
+        except Exception as e:
+            logger.warning("failed to create %s: %s" % (trayDesktop, e))
+
+        # Create Prism Project Browser desktop file
+        pbDesktop = os.path.join(applicationsDir, "PrismProjectBrowser.desktop")
+        pbContent = """[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Prism Project Browser
+Comment=Browse Prism Projects
+Exec="{pythonPath}" "{prismRoot}/Scripts/PrismTray.py" projectBrowser
+Icon={iconPath}
+Terminal=false
+Categories=Graphics;
+StartupNotify=true
+""".format(pythonPath=pythonPath, prismRoot=prismRoot, iconPath=iconPath)
+
+        try:
+            with open(pbDesktop, 'w') as f:
+                f.write(pbContent)
+            os.chmod(pbDesktop, 0o755)
+            logger.debug("created %s" % pbDesktop)
+        except Exception as e:
+            logger.warning("failed to create %s: %s" % (pbDesktop, e))
+
+        # Create Prism Settings desktop file
+        settingsDesktop = os.path.join(applicationsDir, "PrismSettings.desktop")
+        settingsContent = """[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Prism Settings
+Comment=Prism Pipeline Settings
+Exec="{pythonPath}" "{prismRoot}/Scripts/PrismSettings.py"
+Icon={iconPath}
+Terminal=false
+Categories=Settings;Graphics;
+StartupNotify=true
+""".format(pythonPath=pythonPath, prismRoot=prismRoot, iconPath=iconPath)
+
+        try:
+            with open(settingsDesktop, 'w') as f:
+                f.write(settingsContent)
+            os.chmod(settingsDesktop, 0o755)
+            logger.debug("created %s" % settingsDesktop)
+        except Exception as e:
+            logger.warning("failed to create %s: %s" % (settingsDesktop, e))
+
+        # Create autostart entry for Prism Tray
+        autostartFile = os.path.join(autostartDir, "PrismTray.desktop")
+        try:
+            with open(autostartFile, 'w') as f:
+                f.write(trayContent)
+            os.chmod(autostartFile, 0o755)
+            logger.debug("created autostart entry %s" % autostartFile)
+        except Exception as e:
+            logger.warning("failed to create autostart entry %s: %s" % (autostartFile, e))
+
+        # Create desktop shortcut (optional)
+        try:
+            desktopDir = subprocess.check_output(['xdg-user-dir', 'DESKTOP'], stderr=subprocess.DEVNULL).decode().strip()
+            if desktopDir and os.path.exists(desktopDir):
+                desktopShortcut = os.path.join(desktopDir, "PrismProjectBrowser.desktop")
+                with open(desktopShortcut, 'w') as f:
+                    f.write(pbContent)
+                os.chmod(desktopShortcut, 0o755)
+                logger.debug("created desktop shortcut %s" % desktopShortcut)
+        except Exception as e:
+            logger.debug("couldn't create desktop shortcut: %s" % e)
 
         return True
 

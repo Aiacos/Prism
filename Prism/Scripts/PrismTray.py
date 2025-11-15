@@ -226,8 +226,14 @@ class PrismTray:
 
         pythonPath = self.core.getPythonPath(executable="Prism")
         filepath = os.path.join(self.core.prismRoot, "Scripts", "PrismTray.py")
-        cmd = """start "" "%s" "%s" showSplash ignore_pid=%s""" % (pythonPath, filepath, os.getpid())
-        subprocess.Popen(cmd, cwd=self.core.prismRoot, shell=True, env=self.core.startEnv)
+        if platform.system() == "Windows":
+            cmd = """start "" "%s" "%s" showSplash ignore_pid=%s""" % (pythonPath, filepath, os.getpid())
+            subprocess.Popen(cmd, cwd=self.core.prismRoot, shell=True, env=self.core.startEnv)
+        else:  # Linux/macOS
+            cmd = [pythonPath, filepath, "showSplash", "ignore_pid=%s" % os.getpid()]
+            subprocess.Popen(cmd, cwd=self.core.prismRoot, env=self.core.startEnv,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             start_new_session=True)
         sys.exit(0)
 
     def exitTray(self):
@@ -307,14 +313,14 @@ class SenderThread(QThread):
 
 
 def isAlreadyRunning():
+    ignoredPids = [os.getpid()]
+    for arg in sys.argv:
+        if arg.startswith("ignore_pid="):
+            pid = int(arg.split("=")[-1])
+            ignoredPids.append(pid)
+
     if platform.system() == "Windows":
         coreProc = []
-        ignoredPids = [os.getpid()]
-        for arg in sys.argv:
-            if arg.startswith("ignore_pid="):
-                pid = int(arg.split("=")[-1])
-                ignoredPids.append(pid)
-
         for proc in psutil.process_iter():
             try:
                 if (
@@ -326,15 +332,24 @@ def isAlreadyRunning():
                     return True
             except:
                 pass
+    else:  # Linux/macOS
+        for proc in psutil.process_iter(['pid', 'cmdline', 'username']):
+            try:
+                if proc.pid in ignoredPids:
+                    continue
+
+                cmdline = proc.info.get('cmdline', [])
+                if cmdline and 'PrismTray.py' in ' '.join(cmdline):
+                    if proc.info.get('username') == psutil.Process(os.getpid()).username():
+                        return True
+            except:
+                pass
 
     return False
 
 
 def findPrismProcesses():
     procs = []
-    exes = [
-        "Prism.exe",
-    ]
     try:
         import psutil
     except Exception as e:
@@ -346,18 +361,34 @@ def findPrismProcesses():
                 pid = int(arg.split("=")[-1])
                 ignoredPids.append(pid)
 
-        for proc in psutil.process_iter():
-            try:
-                if proc.pid in ignoredPids:
-                    continue
-
+        if platform.system() == "Windows":
+            exes = ["Prism.exe"]
+            for proc in psutil.process_iter():
                 try:
-                    if os.path.basename(proc.exe()) in exes:
-                        procs.append("%s (%s)" % (proc.exe(), proc.pid))
+                    if proc.pid in ignoredPids:
+                        continue
+
+                    try:
+                        if os.path.basename(proc.exe()) in exes:
+                            procs.append("%s (%s)" % (proc.exe(), proc.pid))
+                    except:
+                        continue
                 except:
-                    continue
-            except:
-                pass
+                    pass
+        else:  # Linux/macOS
+            for proc in psutil.process_iter(['pid', 'cmdline', 'exe']):
+                try:
+                    if proc.pid in ignoredPids:
+                        continue
+
+                    cmdline = proc.info.get('cmdline', [])
+                    if cmdline:
+                        cmdline_str = ' '.join(cmdline)
+                        if 'PrismTray.py' in cmdline_str or 'PrismCore.py' in cmdline_str:
+                            exe_path = proc.info.get('exe', 'python')
+                            procs.append("%s (%s)" % (cmdline_str, proc.pid))
+                except:
+                    pass
 
     return procs
 
@@ -449,19 +480,36 @@ def closePrismProcesses():
     except Exception as e:
         pass
     else:
-        PROCNAMES = ["Prism.exe"]
-        for proc in psutil.process_iter():
-            if proc.name() in PROCNAMES:
-                p = psutil.Process(proc.pid)
-                if proc.pid == os.getpid():
-                    continue
+        if platform.system() == "Windows":
+            PROCNAMES = ["Prism.exe"]
+            for proc in psutil.process_iter():
+                if proc.name() in PROCNAMES:
+                    p = psutil.Process(proc.pid)
+                    if proc.pid == os.getpid():
+                        continue
 
+                    try:
+                        if "SYSTEM" not in p.username():
+                            try:
+                                proc.kill()
+                            except Exception as e:
+                                logger.warning("error while killing process: %s" % str(e))
+                    except Exception as e:
+                        logger.warning("failed to kill process: %s" % str(e))
+        else:  # Linux/macOS
+            for proc in psutil.process_iter(['pid', 'cmdline', 'username']):
                 try:
-                    if "SYSTEM" not in p.username():
-                        try:
-                            proc.kill()
-                        except Exception as e:
-                            logger.warning("error while killing process: %s" % str(e))
+                    if proc.pid == os.getpid():
+                        continue
+
+                    cmdline = proc.info.get('cmdline', [])
+                    if cmdline:
+                        cmdline_str = ' '.join(cmdline)
+                        if 'PrismTray.py' in cmdline_str or 'PrismCore.py' in cmdline_str:
+                            try:
+                                proc.kill()
+                            except Exception as e:
+                                logger.warning("error while killing process: %s" % str(e))
                 except Exception as e:
                     logger.warning("failed to kill process: %s" % str(e))
 

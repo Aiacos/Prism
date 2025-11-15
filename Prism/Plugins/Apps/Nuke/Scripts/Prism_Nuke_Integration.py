@@ -35,6 +35,7 @@
 import os
 import sys
 import platform
+import glob
 
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -65,10 +66,60 @@ class Prism_Nuke_Integration(object):
             self.examplePath = "/Users/%s/.nuke" % userName
 
     @err_catcher(name=__name__)
+    def getNukePath(self):
+        if platform.system() == "Windows":
+            # Windows uses hardcoded path for now
+            nukePath = "C:\\Program Files\\Nuke15.0v4"
+            if os.path.exists(nukePath):
+                return nukePath
+            return ""
+
+        elif platform.system() == "Linux":
+            nukePaths = ["/usr/local/Nuke14.0", "/usr/local/Nuke13.2"]
+            nukePaths.extend(glob.glob("/usr/local/Nuke*"))
+            nukePaths.extend(glob.glob("/opt/Nuke*"))
+            for path in sorted(nukePaths, reverse=True):  # Most recent first
+                if os.path.exists(path):
+                    return path
+            return ""
+
+        elif platform.system() == "Darwin":
+            nukePaths = []
+            nukePaths.extend(glob.glob("/Applications/Nuke*"))
+            for path in sorted(nukePaths, reverse=True):  # Most recent first
+                if os.path.exists(path):
+                    return path
+            return ""
+
+        return ""
+
+    @err_catcher(name=__name__)
     def getExecutable(self):
         execPath = ""
         if platform.system() == "Windows":
-            execPath = "C:\\Program Files\\Nuke15.0v4\\Nuke15.0.exe"
+            nukePath = self.getNukePath()
+            if nukePath:
+                # Try to find the executable in the Nuke directory
+                for file in os.listdir(nukePath):
+                    if file.startswith("Nuke") and file.endswith(".exe"):
+                        execPath = os.path.join(nukePath, file)
+                        break
+                if not execPath:
+                    execPath = "C:\\Program Files\\Nuke15.0v4\\Nuke15.0.exe"
+        elif platform.system() == "Linux":
+            nukePath = self.getNukePath()
+            if nukePath:
+                # Look for Nuke executable
+                nukeExec = os.path.join(nukePath, "Nuke")
+                if os.path.exists(nukeExec):
+                    execPath = nukeExec
+        elif platform.system() == "Darwin":
+            nukePath = self.getNukePath()
+            if nukePath:
+                # Look for Nuke.app
+                nukeExec = os.path.join(nukePath, "Nuke.app", "Contents", "MacOS", "Nuke")
+                if os.path.exists(nukeExec):
+                    execPath = nukeExec
 
         return execPath
 

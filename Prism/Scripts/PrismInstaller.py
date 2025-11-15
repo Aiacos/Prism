@@ -63,6 +63,7 @@ from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
 from PrismUtils.Decorators import err_catcher
+from PrismUtils import PlatformUtils
 from UserInterfacesPrism import PrismInstaller_ui
 
 
@@ -434,6 +435,14 @@ class PrismInstaller(QDialog, PrismInstaller_ui.Ui_dlg_installer):
                     "UserProfile": os.environ["Userprofile"],
                     "Documents": self.documents,
                 }
+            elif platform.system() == "Linux":
+                userFolders = {
+                    "ConfigHome": PlatformUtils.getConfigDir(),
+                    "DataHome": PlatformUtils.getDataDir(),
+                    "CacheHome": PlatformUtils.getCacheDir(),
+                    "Home": os.path.expanduser("~"),
+                    "Documents": PlatformUtils.getDocumentsDir(),
+                }
             else:
                 userFolders = {}
 
@@ -716,12 +725,29 @@ class Uninstaller(QDialog):
     @err_catcher(name=__name__)
     def finalize(self, postDeletePaths):
         if postDeletePaths:
-            cmd = "timeout /t 5 /nobreak > nul"
-            for path in postDeletePaths:
-                cmd += " & rmdir /S /Q \"%s\"" % path.replace("\\", "\\\\")
-            
-            import subprocess
-            subprocess.Popen(cmd, shell=True)
+            if platform.system() == "Windows":
+                cmd = "timeout /t 5 /nobreak > nul"
+                for path in postDeletePaths:
+                    cmd += " & rmdir /S /Q \"%s\"" % path.replace("\\", "\\\\")
+
+                import subprocess
+                subprocess.Popen(cmd, shell=True)
+            else:  # Linux/macOS
+                import time
+                import threading
+                import logging
+                logger = logging.getLogger(__name__)
+
+                def delayed_cleanup():
+                    time.sleep(5)
+                    for path in postDeletePaths:
+                        try:
+                            shutil.rmtree(path)
+                        except Exception as e:
+                            logger.warning("Failed to remove %s: %s" % (path, e))
+
+                thread = threading.Thread(target=delayed_cleanup, daemon=True)
+                thread.start()
 
         sys.exit(0)
 
@@ -810,20 +836,38 @@ class Uninstaller(QDialog):
         except:
             pass
         else:
-            PROCNAMES = ["Prism.exe"]
-            for proc in psutil.process_iter():
-                if proc.name() in PROCNAMES:
-                    p = psutil.Process(proc.pid)
-                    if proc.pid == os.getpid():
-                        continue
+            if platform.system() == "Windows":
+                PROCNAMES = ["Prism.exe"]
+                for proc in psutil.process_iter():
+                    if proc.name() in PROCNAMES:
+                        p = psutil.Process(proc.pid)
+                        if proc.pid == os.getpid():
+                            continue
 
+                        try:
+                            if "SYSTEM" not in p.username():
+                                try:
+                                    proc.kill()
+                                except:
+                                    pass
+                        except:
+                            pass
+            else:  # Linux/macOS
+                PROCNAMES = ["python", "python3"]
+                for proc in psutil.process_iter():
                     try:
-                        if "SYSTEM" not in p.username():
-                            try:
-                                proc.kill()
-                            except:
-                                pass
-                    except:
+                        if proc.name() in PROCNAMES:
+                            # Check if cmdline contains "Prism"
+                            cmdline = proc.cmdline()
+                            if cmdline and any("Prism" in str(arg) for arg in cmdline):
+                                if proc.pid == os.getpid():
+                                    continue
+
+                                try:
+                                    proc.kill()
+                                except:
+                                    pass
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
                         pass
 
     @err_catcher(name=__name__)
