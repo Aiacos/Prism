@@ -24,6 +24,12 @@ if ! command -v "$PYTHON_PATH" &> /dev/null; then
     exit 1
 fi
 
+# On Linux, use system libraries instead of bundled PythonLibs
+# Set PRISM_NO_LIBS=1 to skip the bundled libraries check
+if [ "$(uname -s)" = "Linux" ]; then
+    export PRISM_NO_LIBS=1
+fi
+
 # Launch Prism Core in background and exit immediately
 # The '&' puts the process in the background, and 'exit 0' exits without waiting
 "$PYTHON_PATH" "$SCRIPT_DIR/Scripts/PrismCore.py" "$@" &

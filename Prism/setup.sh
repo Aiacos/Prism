@@ -33,6 +33,12 @@ if [ "$1" == "--system" ]; then
     fi
 fi
 
+# On Linux, use system libraries instead of bundled PythonLibs
+# Set PRISM_NO_LIBS=1 to skip the bundled libraries check
+if [ "$(uname -s)" = "Linux" ]; then
+    export PRISM_NO_LIBS=1
+fi
+
 # Launch Prism Installer
 "$PYTHON_PATH" "$SCRIPT_DIR/Scripts/PrismInstaller.py" "$@"
 
