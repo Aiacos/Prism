@@ -13,7 +13,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # First, try bundled Python 3.11
 if [ -f "$SCRIPT_DIR/Python311/bin/python3" ]; then
     PYTHON_PATH="$SCRIPT_DIR/Python311/bin/python3"
-# Fallback to system Python 3
+# On Linux, prefer system Python (not Homebrew/conda)
+elif [ "$(uname -s)" = "Linux" ] && [ -x "/usr/bin/python3" ]; then
+    PYTHON_PATH="/usr/bin/python3"
+# Fallback to python3 in PATH
 else
     PYTHON_PATH="python3"
 fi

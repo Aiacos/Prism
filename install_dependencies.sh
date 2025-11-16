@@ -64,6 +64,7 @@ install_system_packages() {
                 python3 \
                 python3-pip \
                 python3-pyside2 \
+                python3-qtpy \
                 python3-numpy \
                 python3-psutil \
                 ffmpeg \
@@ -87,6 +88,7 @@ install_system_packages() {
                 python3 \
                 python3-pip \
                 $pyside_pkg \
+                python3-qtpy \
                 python3-numpy \
                 python3-psutil \
                 python3-imageio \
@@ -102,6 +104,7 @@ install_system_packages() {
                 python3 \
                 python3-pip \
                 python3-pyside2 \
+                python3-qtpy \
                 python3-numpy \
                 python3-psutil \
                 ffmpeg \
@@ -116,6 +119,7 @@ install_system_packages() {
                 python \
                 python-pip \
                 python-pyside2 \
+                python-qtpy \
                 python-numpy \
                 python-psutil \
                 ffmpeg \
@@ -129,6 +133,7 @@ install_system_packages() {
                 python3 \
                 python3-pip \
                 python3-pyside2 \
+                python3-qtpy \
                 python3-numpy \
                 python3-psutil \
                 ffmpeg \
