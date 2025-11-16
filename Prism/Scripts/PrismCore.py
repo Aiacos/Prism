@@ -133,6 +133,7 @@ except:
             pass
 
 from PrismUtils.Decorators import err_catcher
+from PrismUtils.PlatformUtils import PlatformUtils
 from PrismUtils import (
     Callbacks,
     ConfigManager,
@@ -140,7 +141,6 @@ from PrismUtils import (
     MediaManager,
     MediaProducts,
     PathManager,
-    PlatformUtils,
     PluginManager,
     PrismWidgets,
     Products,

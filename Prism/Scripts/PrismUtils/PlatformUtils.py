@@ -149,6 +149,7 @@ class PlatformUtils:
             return os.path.expanduser("~")
 
     @staticmethod
+    @err_catcher(name=__name__)
     def getDataDir():
         """
         Get the system data directory in a cross-platform way.
