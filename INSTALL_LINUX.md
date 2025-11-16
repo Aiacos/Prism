@@ -152,7 +152,7 @@ pip3 install --user --break-system-packages -r requirements.txt
 
 3. **Esegui l'installazione:**
    ```bash
-   cd Prism
+   cd Prism/Prism
    ./setup.sh
    ```
 
@@ -288,7 +288,7 @@ Questo crea: `~/.config/autostart/PrismTray.desktop`
 
 3. **Controlla i log:**
    ```bash
-   cd Prism
+   cd Prism/Prism
    python3 Scripts/PrismCore.py 2>&1 | tee prism.log
    ```
 
@@ -354,7 +354,7 @@ Questo installerà pacchetti pre-compilati e testati per la tua distribuzione.
 ### Installazione Utente
 
 ```bash
-cd ~/Prism/Prism
+cd ~/Prism/Prism/Prism
 ./uninstall.sh
 ```
 
@@ -369,7 +369,7 @@ rm -rf ~/.cache/Prism2
 ### Installazione di Sistema
 
 ```bash
-cd /opt/Prism/Prism
+cd /opt/Prism/Prism/Prism
 sudo ./uninstall.sh
 ```
 

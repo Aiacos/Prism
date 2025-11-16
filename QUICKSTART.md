@@ -72,14 +72,14 @@ Dovresti vedere:
 ### 4. Avvia Prism
 
 ```bash
-cd Prism
+cd Prism/Prism
 ./prism.sh
 ```
 
 **Oppure** esegui direttamente:
 
 ```bash
-cd Prism
+cd Prism/Prism
 python3 Scripts/PrismCore.py
 ```
 
@@ -107,7 +107,7 @@ Per configurazione manuale: **Prism Settings → DCC Apps → Add**
 Avvia Prism Tray per accesso rapido:
 
 ```bash
-cd Prism
+cd Prism/Prism
 python3 Scripts/PrismTray.py &
 ```
 
@@ -134,13 +134,13 @@ Per avvio automatico: **Prism Settings → User → Launch on system startup**
 ./install_dependencies.sh --dev
 
 # Avvia Project Browser
-cd Prism && ./prism.sh
+cd Prism/Prism && ./prism.sh
 
 # Avvia Settings
-cd Prism && python3 Scripts/PrismSettings.py
+cd Prism/Prism && python3 Scripts/PrismSettings.py
 
 # Avvia System Tray
-cd Prism && python3 Scripts/PrismTray.py
+cd Prism/Prism && python3 Scripts/PrismTray.py
 ```
 
 ## Risoluzione Problemi
@@ -157,7 +157,7 @@ python3 -c "from PySide2 import QtCore; print('OK')"
 python3 -c "from PySide6 import QtCore; print('OK')"
 
 # Verifica log
-cd Prism
+cd Prism/Prism
 python3 Scripts/PrismCore.py 2>&1 | tee prism.log
 ```
 

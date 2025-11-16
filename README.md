@@ -45,7 +45,7 @@ git clone https://github.com/PrismPipeline/Prism.git
 cd Prism
 git checkout feature/linux-compatibility
 sudo ./install_dependencies.sh --system
-cd Prism
+cd Prism/Prism
 ./prism.sh
 ```
 
